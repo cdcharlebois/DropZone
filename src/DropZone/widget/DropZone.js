@@ -28,7 +28,7 @@ define([
     "dojo/dom-construct",
     "dojo/_base/lang",
     "DropZone/widget/lib/dropzone"
-], function (declare, _WidgetBase, domConstruct, dojoLang, Dropzone) {
+], function(declare, _WidgetBase, domConstruct, dojoLang, Dropzone) {
     "use strict";
 
     // Declare widget's prototype.
@@ -51,7 +51,7 @@ define([
          * @public
          * @returns {undefined}
          */
-        constructor: function () {
+        constructor: function() {
             logger.debug(this.id + ".constructor");
             this.dropzone = null;
             this._contextObj = null;
@@ -60,7 +60,7 @@ define([
          * dijit._WidgetBase.postCreate is called after constructing the widget. Implement to do extra setup work.
          * @returns {undefined}
          */
-        postCreate: function () {
+        postCreate: function() {
             logger.debug(this.id + ".postCreate");
             this.initDropZone();
         },
@@ -70,7 +70,7 @@ define([
          * @param {mxui/widget/_WidgetBase~ApplyContextCallback} callback - function to be called when finished
          * @returns {undefined}
          */
-        update: function (obj, callback) {
+        update: function(obj, callback) {
             logger.debug(this.id + ".update");
             this._contextObj = obj;
             mendix.lang.nullExec(callback);
@@ -80,7 +80,7 @@ define([
          * @private
          * @returns {undefined}
          */
-        initDropZone: function () {
+        initDropZone: function() {
             logger.debug(this.id + ".initDropZone");
             domConstruct.empty(this.domNode);
             if (!this.autoUpload) {
@@ -91,11 +91,16 @@ define([
                 });
                 this.domNode.appendChild(this.uploadButton.domNode);
             }
-            this.domNode.appendChild(mxui.dom.div({
+            this.domNode.appendChild(domConstruct.create('div', {
                 "id": this.id + "_zone",
                 "class": "dropzone",
                 "style": "height: " + this.panelheight + "px; width: " + this.panelwidth + "px;"
             }));
+            // this.domNode.appendChild(mxui.dom.div({
+            //     "id": this.id + "_zone",
+            //     "class": "dropzone",
+            //     "style": "height: " + this.panelheight + "px; width: " + this.panelwidth + "px;"
+            // }));
             this.dropzone = new Dropzone("#" + this.id + "_zone", {
                 autoDiscover: false,
                 maxFilesize: this.maxFileSize,
@@ -116,7 +121,7 @@ define([
          * @param {file[]} files
          * @returns {String} url - mendix server URL to post the file to.s 
          */
-        getMendixURL: function (files) {
+        getMendixURL: function(files) {
             logger.debug(this.id + ".getMendixURL");
             return "/file?guid=" + files[0].obj.getGuid() + "&maxFileSize=" + this.maxFileSize + "&csrfToken=" + mx.session.getCSRFToken() + "&height=75&width=100";
         },
@@ -126,7 +131,7 @@ define([
          * @param {type} message - error message
          * @returns {undefined}
          */
-        onError: function (file, message) {
+        onError: function(file, message) {
             logger.error(this.id + ".onError", message);
             this.onRemoveFile(file);
         },
@@ -136,7 +141,7 @@ define([
          * @param {type} message - status message
          * @returns {undefined}
          */
-        onRemoveFile: function (file, message) {
+        onRemoveFile: function(file, message) {
             if (this._beingDestroyed) {
                 // dont remove the files when the widget is being destroyed by the uninitialize function.
                 return;
@@ -153,10 +158,10 @@ define([
                     store: {
                         caller: this.mxform
                     },
-                    callback: dojoLang.hitch(this, function (result) {
+                    callback: dojoLang.hitch(this, function(result) {
                         file.obj = null;
                     }),
-                    error: function (e) {
+                    error: function(e) {
                         logger.error("onRemoveFile", e);
                     }
                 });
@@ -170,20 +175,20 @@ define([
          * @param {type} message - status message
          * @returns {undefined}
          */
-        onComplete: function (file, message) {
+        onComplete: function(file, message) {
             logger.debug(this.id + ".onComplete");
             if (file.obj) {
                 mx.data.commit({
                     mxobj: file.obj,
-                    callback: dojoLang.hitch(this, function () {
+                    callback: dojoLang.hitch(this, function() {
                         logger.debug("onComplete");
                         this.callOnChange(file.obj);
                     })
                 });
             }
             if (!this.autoUpload) {
-				this.dropzone.processQueue(); 
-			}
+                this.dropzone.processQueue();
+            }
         },
         /**
          * Create file on mendix server, and validate if it could be accepted.
@@ -191,8 +196,8 @@ define([
          * @param {function} callback - callback function an acceptance.
          * @returns {undefined}
          */
-        accept: function (file, callback) {
-            this.createMendixFile(file, dojoLang.hitch(this, function () {
+        accept: function(file, callback) {
+            this.createMendixFile(file, dojoLang.hitch(this, function() {
                 this.acceptMendix(file, callback);
             }));
         },
@@ -202,7 +207,7 @@ define([
          * @param {function} callback - callback function on completion
          * @returns {undefined}
          */
-        acceptMendix: function (file, callback) {
+        acceptMendix: function(file, callback) {
             logger.debug(this.id + ".accept");
             var rejectcaption = this.rejectcaption || "rejected";
             if (file.obj && this.onAccept) {
@@ -215,14 +220,14 @@ define([
                     store: {
                         caller: this.mxform
                     },
-                    callback: dojoLang.hitch(this, function (result) {
+                    callback: dojoLang.hitch(this, function(result) {
                         if (!result) {
                             callback(rejectcaption);
                         } else {
                             callback();
                         }
                     }),
-                    error: function (e) {
+                    error: function(e) {
                         logger.error("addedFile", e);
                     }
                 });
@@ -237,11 +242,11 @@ define([
          * @param {function} callback
          * @returns {undefined}
          */
-        createMendixFile: function (file, callback) {
+        createMendixFile: function(file, callback) {
             logger.debug(this.id + ".createMendixFile");
             mx.data.create({
                 entity: this.imageentity,
-                callback: dojoLang.hitch(this, function (obj) {
+                callback: dojoLang.hitch(this, function(obj) {
                     var ref = this.contextassociation.split("/");
                     if (obj.has(ref[0])) {
                         obj.set(ref[0], this._contextObj.getGuid());
@@ -256,7 +261,7 @@ define([
                     file.obj = obj;
                     callback();
                 }),
-                error: function () {
+                error: function() {
                     logger.error("failed createMendixFile");
                     callback();
                 }
@@ -267,16 +272,16 @@ define([
          * @param {File} file - file that needs to be removed.
          * @returns {undefined}
          */
-        removeFile: function (file) {
+        removeFile: function(file) {
             logger.debug(this.id + ".removeFile");
             if (file.obj) {
                 mx.data.remove({
                     guid: file.obj.getGuid(),
-                    callback: function () {
+                    callback: function() {
                         mx.data.sendClassUpdate(file.obj.getEntity());
                         file.obj = null;
                     },
-                    error: function (err) {
+                    error: function(err) {
                         console.log("Error occurred attempting to remove object " + err);
                     }
                 });
@@ -286,7 +291,7 @@ define([
          * on click of the upload button start processing the upload queue
          * @returns {undefined}
          */
-        onclickEvent: function () {
+        onclickEvent: function() {
             logger.debug(this.id + ".onclickEvent");
             this.dropzone.processQueue();
         },
@@ -295,7 +300,7 @@ define([
          * @param {mendix/lib/MxObject} obj
          * @returns {undefined}
          */
-        callOnChange: function (obj) {
+        callOnChange: function(obj) {
             logger.debug(this.id + ".callOnChange");
             if (obj && this.onChangemf) {
                 mx.data.action({
@@ -307,10 +312,10 @@ define([
                     store: {
                         caller: this.mxform
                     },
-                    callback: dojoLang.hitch(this, function () {
+                    callback: dojoLang.hitch(this, function() {
                         logger.debug("callOnChange");
                     }),
-                    error: function (e) {
+                    error: function(e) {
                         logger.error("callOnChange", e);
                     }
                 });
@@ -321,7 +326,7 @@ define([
          * Clean up listeners, helper objects, etc. There is no need to remove listeners added with this.connect / this.subscribe / this.own.
          * @returns {undefined}
          */
-        uninitialize: function () {
+        uninitialize: function() {
             logger.debug(this.id + ".uninitialize");
             if (this.dropzone) {
                 this.dropzone.destroy();
